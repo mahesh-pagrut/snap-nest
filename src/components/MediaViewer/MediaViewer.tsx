@@ -149,6 +149,24 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
                     <span className="text-[1.01rem]">None</span>
                   </Button>
                 </li>
+                <li>
+                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
+                    <Ban className="w-5 h-5 mr-3" />
+                    <span className="text-[1.01rem]">Improve</span>
+                  </Button>
+                </li>
+                <li>
+                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
+                    <Ban className="w-5 h-5 mr-3" />
+                    <span className="text-[1.01rem]">Restore</span>
+                  </Button>
+                </li>
+                <li>
+                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
+                    <Ban className="w-5 h-5 mr-3" />
+                    <span className="text-[1.01rem]">Remove Background</span>
+                  </Button>
+                </li>
               </ul>
             </TabsContent>
             <TabsContent value="crop">
