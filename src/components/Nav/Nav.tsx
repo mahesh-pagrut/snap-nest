@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
 import Container from '@/components/Container';
+import UploadButton from '@/components/UploadButton'
+
 
 const Nav = () => {
   return (
@@ -15,7 +17,9 @@ const Nav = () => {
           </Link>
         </p>
         <ul className="flex flex-grow justify-end gap-6 m-0">
-          <li>Link</li>
+          <li>
+            <UploadButton/>
+          </li>
         </ul>
       </Container>
     </nav>
