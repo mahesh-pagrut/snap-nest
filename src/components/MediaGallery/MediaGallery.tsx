@@ -29,12 +29,14 @@ import { useResources } from "@/hooks/use-resources";
 
 interface MediaGalleryProps {
   resources: Array<CloudinaryResource>;
+  tag?: string;
 }
 
-const MediaGallery = ({ resources: initialResources }: MediaGalleryProps) => {
+const MediaGallery = ({ resources: initialResources, tag }: MediaGalleryProps) => {
 
   const { resources } = useResources({
-    initialResources
+    initialResources,
+    tag
   })
 
   console.log('resources', resources)
@@ -166,7 +168,7 @@ const MediaGallery = ({ resources: initialResources }: MediaGalleryProps) => {
                         className={`block cursor-pointer border-8 transition-[border] ${
                           isChecked ? "border-blue-500" : "border-white"
                         }`}
-                        href="#"
+                        href={`/resources/${resource.asset_id}`}
                       >
                         <CldImage
                           width={resource.width}
