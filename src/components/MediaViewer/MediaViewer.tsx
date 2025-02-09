@@ -15,6 +15,9 @@ import {
   Ban,
   PencilRuler,
   ScissorsSquare,
+  Square,
+  RectangleVertical,
+  RectangleHorizontal,
 } from "lucide-react";
 
 import Container from "@/components/Container";
@@ -61,6 +64,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   const [deletion, setDeletion] = useState<Deletion>();
 
   const [enhancement, setEnhancement] = useState<string>();
+  const [crop, setCrop] = useState<string>();
 
   type Transformations = Omit<CldImageProps, "src" | "alt">;
   const transformations: Transformations = {};
@@ -73,6 +77,31 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     transformations.removeBackground = true;
   }
 
+  if ( crop === 'square'){
+    if (resource.width > resource.height) {
+      transformations.height = resource.width;
+    } else {
+      transformations.width = resource.height;
+    }
+    transformations.crop = {
+      source: true,
+      type: 'fill'
+    }
+  } else if ( crop === 'landscape') {
+    transformations.height = Math.floor(resource.width / (16/9))
+    transformations.crop = {
+      source: true,
+      type: 'fill'
+    }
+  } else if( crop == 'portrait' ) {
+    transformations.width = Math.floor(resource.height / (5/4))
+      transformations.crop = {
+        source: true,
+        type: 'fill'
+    }
+  }
+  
+
   console.log("enhancement", enhancement);
 
   // Canvas sizing based on the image dimensions. The tricky thing about
@@ -82,8 +111,8 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   // determine whether it's landscape, portrait, or square, and change a little
   // CSS to make it appear centered and scalable!
 
-  const canvasHeight = resource.height;
-  const canvasWidth = resource.width;
+  const canvasHeight = transformations.height || resource.height;
+  const canvasWidth = transformations.width || resource.width;
 
   const isSquare = canvasHeight === canvasWidth;
   const isLandscape = canvasWidth > canvasHeight;
@@ -194,6 +223,8 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                 <span className="sr-only">Filters</span>
               </TabsTrigger>
             </TabsList>
+
+            {/* enhancement functionlaties */}
             <TabsContent value="enhance">
               <SheetHeader className="my-4">
                 <SheetTitle className="text-zinc-400 text-sm font-semibold">
@@ -230,24 +261,42 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                 ))}
               </ul>
             </TabsContent>
+
+            {/* cropping functionalities  */}
             <TabsContent value="crop">
               <SheetHeader className="my-4">
                 <SheetTitle className="text-zinc-400 text-sm font-semibold">
                   Cropping & Resizing
                 </SheetTitle>
               </SheetHeader>
-              <ul className="grid gap-2">
-                <li>
-                  <Button
-                    variant="ghost"
-                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
-                  >
-                    <Image className="w-5 h-5 mr-3" />
-                    <span className="text-[1.01rem]">Original</span>
-                  </Button>
-                </li>
-              </ul>
+              <ul className="grid gap-3">
+                  {[
+                    { key: undefined, label: "Original", icon: Image },
+                    { key: "square", label: "Square", icon: Square },
+                    { key: "landscape", label: "Landscape", icon: RectangleHorizontal },
+                    { key: "portrait", label: "Portrait", icon: RectangleVertical },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <li key={label}>
+                      <Button
+                        variant="ghost"
+                        className={`flex items-center gap-3 text-left justify-start w-full h-14 border-2 bg-zinc-800 text-white 
+                        transition-all duration-200 hover:bg-zinc-700 hover:border-gray-400 
+                        ${
+                          crop === key
+                            ? "border-blue-500 bg-zinc-700 shadow-md"
+                            : "border-transparent"
+                        }`}
+                        onClick={() => setCrop(key)}
+                      >
+                        <Icon className="w-5 h-5 text-gray-300" />
+                        <span className="text-base font-medium">{label}</span>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
             </TabsContent>
+
+            {/* filters functionalities */}
             <TabsContent value="filters">
               <SheetHeader className="my-4">
                 <SheetTitle className="text-zinc-400 text-sm font-semibold">
