@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { CloudinaryResource } from "@/types/cloudinary";
-import { CldImageProps } from "next-cloudinary";
+import { CldImageProps, getCldImageUrl } from "next-cloudinary";
 import  CldImage  from "@/components/CldImage"
 
 interface Deletion {
@@ -63,6 +63,8 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   const [infoSheetIsOpen, setInfoSheetIsOpen] = useState(false);
   const [deletion, setDeletion] = useState<Deletion>();
 
+
+  const [version, setVersion] = useState<number>(1);
   const [enhancement, setEnhancement] = useState<string>();
   const [crop, setCrop] = useState<string>();
   const [filter, setFilter] = useState<string>();
@@ -109,7 +111,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     transformations.art = filter;
   }
 
-  console.log("enhancement", enhancement);
+  const hasTransformations = Object.entries(transformations).length > 0;
 
   // Canvas sizing based on the image dimensions. The tricky thing about
   // showing a single image in a space like this in a responsive way is trying
@@ -148,9 +150,15 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     setDeletion(undefined);
   }
 
-  /**
-   * handleOnDeletionOpenChange
-   */
+  // discard changes
+
+  function discardChanges(){
+    setEnhancement(undefined);
+    setCrop(undefined);
+    setFilter(undefined);
+    }
+
+  // handleOnDeletionOpenChange
 
   function handleOnDeletionOpenChange(isOpen: boolean) {
     // Reset deletion dialog if the user is closing it
@@ -158,7 +166,32 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       setDeletion(undefined);
     }
   }
+// handlerOnSave
+  async function handleOnSave(){
+    const url = getCldImageUrl({
+      width: resource.width,
+      height: resource.height,
+      src: resource.public_id,
+      format: 'default',
+      quality: 'default',
+      ...transformations
+    });
 
+    await fetch(url);
+
+    const results = await fetch('/api/upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        publicId: resource.public_id,
+        url
+      })
+    }).then(r => r.json())
+
+    closeMenus();
+    discardChanges();
+    setVersion(Date.now());
+  }
+  
   // Listen for clicks outside of the panel area and if determined
   // to be outside, close the panel. This is marked by using
   // a data attribute to provide an easy way to reference it on
@@ -206,6 +239,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       {/** Edit panel for transformations and filters */}
 
@@ -310,7 +344,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Filters
                 </SheetTitle>
               </SheetHeader>
-              <ul className="grid grid-cols-2 gap-2">
+              <ul className="grid grid-cols-3 gap-2">
                 {[
                   { key: undefined, label: "No Filter", filter: {} },
                   { key: "sepia", label: "Sepia", filter: { sepia: true } },
@@ -330,8 +364,8 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                       onClick={() => setFilter(key)}
                     >
                       <CldImage
-                        width={156}
-                        height={156}
+                        width={120}
+                        height={120}
                         crop="fill"
                         {...imgFilter}
                         src={resource.public_id}
@@ -345,43 +379,65 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
             </TabsContent>
           </Tabs>
           <SheetFooter className="gap-2 sm:flex-col">
+            { hasTransformations && (
             <div className="grid grid-cols-[1fr_4rem] gap-2">
+              {/* Save Button */}
               <Button
                 variant="ghost"
-                className="w-full h-14 text-left justify-center items-center bg-blue-500"
+                className="w-full h-14 text-white text-[1.01rem] flex justify-center items-center bg-blue-500 
+                  transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
+                  onClick={handleOnSave}
               >
-                <span className="text-[1.01rem]">Save</span>
+                Save
               </Button>
+
+              {/* Dropdown Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full h-14 text-left justify-center items-center bg-blue-500"
+                    className="w-full h-14 flex justify-center items-center bg-blue-500 text-white 
+                      transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
                   >
                     <span className="sr-only">More Options</span>
                     <ChevronDown className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56"
+                  className="w-56 bg-zinc-800 text-white border border-gray-700 shadow-lg rounded-lg"
                   data-exclude-close-on-click={true}
                 >
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="flex items-center gap-2 px-4 py-3 text-[1.01rem] 
+                        hover:bg-zinc-700 hover:text-blue-400 transition-all duration-200 
+                        rounded-md cursor-pointer"
+                    >
                       <span>Save as Copy</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            )}
+
+            {/* Close Button */}
             <Button
-              variant="outline"
-              className="w-full h-14 text-left justify-center items-center bg-transparent border-zinc-600"
-              onClick={() => closeMenus()}
-            >
-              <span className="text-[1.01rem]">Close</span>
-            </Button>
+                variant="outline"
+                className={`w-full h-14 flex justify-center items-center rounded-xl shadow-md 
+                  border border-zinc-600 transition-all duration-200 
+                  hover:bg-zinc-700 hover:border-gray-400 
+                  ${
+                    hasTransformations
+                      ? "text-red-400 hover:text-red-300"  // Highlight "Cancel" in red
+                      : "text-white hover:text-gray-300"  // Keep "Close" neutral
+                  }`}
+                onClick={() => closeMenus()}
+              >
+                {hasTransformations ? "Cancel" : "Close"}
+              </Button>
           </SheetFooter>
+
         </SheetContent>
       </Sheet>
 
@@ -476,13 +532,14 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
 
       <div className="relative flex justify-center items-center align-center w-full h-full">
         <CldImage
-          key = {JSON.stringify(transformations)}
+          key = {`${JSON.stringify(transformations)} = ${version}`}
           className="object-contain"
           width={resource.width}
           height={resource.height}
           src={resource.public_id}
           alt={`Image ${resource.public_id}`}
           style={imgStyles}
+          version={version}
           {...transformations}
         />
       </div>
