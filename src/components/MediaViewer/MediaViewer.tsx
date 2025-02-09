@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Blend,
   ChevronLeft,
@@ -29,6 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -37,6 +39,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +57,7 @@ interface Deletion {
 }
 
 const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
+  const router = useRouter()
   const sheetFiltersRef = useRef<HTMLDivElement | null>(null);
   const sheetInfoRef = useRef<HTMLDivElement | null>(null);
 
@@ -166,7 +170,9 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       setDeletion(undefined);
     }
   }
-// handlerOnSave
+
+
+// handleOnSave
   async function handleOnSave(){
     const url = getCldImageUrl({
       width: resource.width,
@@ -176,6 +182,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       quality: 'default',
       ...transformations
     });
+
 
     await fetch(url);
 
@@ -190,8 +197,34 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     closeMenus();
     discardChanges();
     setVersion(Date.now());
+
+    console.log('url', url)
+    console.log('results', results)
   }
   
+
+  // handleSaveOnCopy
+  async function handleOnSaveCopy(){
+    const url = getCldImageUrl({
+      width: resource.width,
+      height: resource.height,
+      src: resource.public_id,
+      format: 'default',
+      quality: 'default',
+      ...transformations
+    });
+
+    await fetch(url);
+
+    const {data} = await fetch('/api/upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        url
+      })
+    }).then(r => r.json())
+
+    router.push(`/resources/${data.asset_id}`)
+  }
   // Listen for clicks outside of the panel area and if determined
   // to be outside, close the panel. This is marked by using
   // a data attribute to provide an easy way to reference it on
@@ -412,6 +445,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                       className="flex items-center gap-2 px-4 py-3 text-[1.01rem] 
                         hover:bg-zinc-700 hover:text-blue-400 transition-all duration-200 
                         rounded-md cursor-pointer"
+                        onClick={handleOnSaveCopy}
                     >
                       <span>Save as Copy</span>
                     </DropdownMenuItem>
@@ -432,7 +466,10 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                       ? "text-red-400 hover:text-red-300"  // Highlight "Cancel" in red
                       : "text-white hover:text-gray-300"  // Keep "Close" neutral
                   }`}
-                onClick={() => closeMenus()}
+                onClick={() => {
+                  closeMenus();
+                  discardChanges();
+                }}
               >
                 {hasTransformations ? "Cancel" : "Close"}
               </Button>
@@ -478,61 +515,53 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
         </SheetContent>
       </Sheet>
 
-      {/** Asset management navbar */}
+      {/** Asset Management Navbar */}
+        <Container className="fixed z-10 top-0 left-0 w-full h-16 flex items-center justify-between px-6 bg-zinc-900 shadow-md rounded-lg">
+          {/* Back Button */}
+          <div className="flex items-center">
+            <Link href="/" className="text-white flex items-center gap-2 text-lg font-medium p-3 hover:bg-zinc-800 rounded-md transition">
+              <ChevronLeft className="h-5 w-5" />
+              Back
+            </Link>
+          </div>
 
-      <Container className="fixed z-10 top-0 left-0 w-full h-16 flex items-center justify-between gap-4 bg-gradient-to-b from-black">
-        <div className="flex items-center gap-4">
-          <ul>
+          {/* Action Buttons */}
+          <ul className="flex items-center gap-4">
             <li>
-              <Link
-                href="/"
-                className={`${buttonVariants({ variant: "ghost" })} text-white`}
+              <Button
+                variant="ghost"
+                className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
+                onClick={() => setFilterSheetIsOpen(true)}
               >
-                <ChevronLeft className="h-6 w-6" />
-                Back
-              </Link>
+                <Pencil className="h-6 w-6" />
+              </Button>
+            </li>
+            <li>
+              <Button
+                variant="ghost"
+                className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
+                onClick={() => setInfoSheetIsOpen(true)}
+              >
+                <Info className="h-6 w-6" />
+              </Button>
+            </li>
+            <li>
+              <Button
+                variant="ghost"
+                className="text-white p-3 hover:bg-zinc-800 hover:text-red-500 rounded-lg transition"
+                onClick={() => setDeletion({ state: "confirm" })}
+              >
+                <Trash2 className="h-6 w-6" />
+              </Button>
             </li>
           </ul>
-        </div>
-        <ul className="flex items-center gap-4">
-          <li>
-            <Button
-              variant="ghost"
-              className="text-white"
-              onClick={() => setFilterSheetIsOpen(true)}
-            >
-              <Pencil className="h-6 w-6" />
-              <span className="sr-only">Edit</span>
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className="text-white"
-              onClick={() => setInfoSheetIsOpen(true)}
-            >
-              <Info className="h-6 w-6" />
-              <span className="sr-only">Info</span>
-            </Button>
-          </li>
-          <li>
-            <Button
-              variant="ghost"
-              className="text-white"
-              onClick={() => setDeletion({ state: "confirm" })}
-            >
-              <Trash2 className="h-6 w-6" />
-              <span className="sr-only">Delete</span>
-            </Button>
-          </li>
-        </ul>
-      </Container>
+        </Container>
 
       {/** Asset viewer */}
 
       <div className="relative flex justify-center items-center align-center w-full h-full">
         <CldImage
-          key = {`${JSON.stringify(transformations)} = ${version}`}
+          key = {`${JSON.stringify(transformations)}-${version}`}
           className="object-contain"
           width={resource.width}
           height={resource.height}
