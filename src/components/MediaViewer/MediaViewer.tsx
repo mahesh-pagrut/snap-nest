@@ -225,6 +225,18 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
 
     router.push(`/resources/${data.asset_id}`)
   }
+
+  async function handleOnDelete(){
+    await fetch('/api/delete',{
+      method:'POST',
+      body: JSON.stringify({
+        publicId:resource.public_id
+      })
+    })
+    router.push('/')
+  }
+
+
   // Listen for clicks outside of the panel area and if determined
   // to be outside, close the panel. This is marked by using
   // a data attribute to provide an easy way to reference it on
@@ -266,7 +278,9 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
             </DialogTitle>
           </DialogHeader>
           <DialogFooter className="justify-center sm:justify-center">
-            <Button variant="destructive">
+            <Button variant="destructive"
+            onClick={handleOnDelete}
+            >
               <Trash2 className="h-4 w-4 mr-2" /> Delete
             </Button>
           </DialogFooter>
