@@ -65,6 +65,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
 
   const [enhancement, setEnhancement] = useState<string>();
   const [crop, setCrop] = useState<string>();
+  const [filter, setFilter] = useState<string>();
 
   type Transformations = Omit<CldImageProps, "src" | "alt">;
   const transformations: Transformations = {};
@@ -101,6 +102,12 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     }
   }
   
+
+  if ( typeof filter === 'string' && ['grayscale', 'sepia', 'sharpen'].includes(filter)){
+    transformations[filter as keyof Transformations] = true
+  } else if ( typeof filter === 'string' && ['sizzle', 'frost'].includes(filter)){
+    transformations.art = filter;
+  }
 
   console.log("enhancement", enhancement);
 
@@ -304,17 +311,37 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                 </SheetTitle>
               </SheetHeader>
               <ul className="grid grid-cols-2 gap-2">
-                <li>
-                  <button className={`w-full border-4 border-white`}>
-                    <img
-                      width={resource.width}
-                      height={resource.height}
-                      src="/icon-1024x1024.png"
-                      alt="No Filter"
-                    />
-                  </button>
-                </li>
+                {[
+                  { key: undefined, label: "No Filter", filter: {} },
+                  { key: "sepia", label: "Sepia", filter: { sepia: true } },
+                  { key: "sizzle", label: "Sizzle", filter: { art: "sizzle" } },
+                  { key: "frost", label: "Frost", filter: { art: "frost" } },
+                  { key: "grayscale", label: "Grayscale", filter: { grayscale: true } },
+                  { key: "sharpen", label: "Sharpen", filter: { sharpen: true } },
+                ].map(({ key, label, filter: imgFilter }) => (
+                  <li key={label}>
+                    <button
+                      className={`w-full border-2 bg-zinc-800 text-white transition-all duration-200 hover:bg-zinc-700 hover:border-gray-400 
+                        ${
+                          filter === key
+                            ? "border-blue-500 bg-zinc-700 shadow-md"
+                            : "border-transparent"
+                        }`}
+                      onClick={() => setFilter(key)}
+                    >
+                      <CldImage
+                        width={156}
+                        height={156}
+                        crop="fill"
+                        {...imgFilter}
+                        src={resource.public_id}
+                        alt={label}
+                      />
+                    </button>
+                  </li>
+                ))}
               </ul>
+
             </TabsContent>
           </Tabs>
           <SheetFooter className="gap-2 sm:flex-col">
