@@ -1,24 +1,56 @@
-'use client';
+"use client";
 
-import {  useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { Blend, ChevronLeft, ChevronDown, Crop, Info, Pencil, Trash2, Wand2, Image, Ban } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import {
+  Blend,
+  ChevronLeft,
+  ChevronDown,
+  Crop,
+  Info,
+  Pencil,
+  Trash2,
+  Wand2,
+  Image,
+  Ban,
+  PencilRuler,
+  ScissorsSquare,
+} from "lucide-react";
 
-import Container from '@/components/Container';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Container from "@/components/Container";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import {CloudinaryResource} from '@/types/cloudinary'
-import { CldImage } from 'next-cloudinary';
+import { CloudinaryResource } from "@/types/cloudinary";
+import { CldImageProps } from "next-cloudinary";
+import  CldImage  from "@/components/CldImage"
 
 interface Deletion {
   state: string;
 }
 
-const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
+const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   const sheetFiltersRef = useRef<HTMLDivElement | null>(null);
   const sheetInfoRef = useRef<HTMLDivElement | null>(null);
 
@@ -27,6 +59,21 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
   const [filterSheetIsOpen, setFilterSheetIsOpen] = useState(false);
   const [infoSheetIsOpen, setInfoSheetIsOpen] = useState(false);
   const [deletion, setDeletion] = useState<Deletion>();
+
+  const [enhancement, setEnhancement] = useState<string>();
+
+  type Transformations = Omit<CldImageProps, "src" | "alt">;
+  const transformations: Transformations = {};
+
+  if (enhancement === "restore") {
+    transformations.restore = true;
+  } else if (enhancement === "improve") {
+    transformations.improve = true;
+  } else if (enhancement === "remove-background") {
+    transformations.removeBackground = true;
+  }
+
+  console.log("enhancement", enhancement);
 
   // Canvas sizing based on the image dimensions. The tricky thing about
   // showing a single image in a space like this in a responsive way is trying
@@ -44,14 +91,14 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
 
   const imgStyles: Record<string, string | number> = {};
 
-  if ( isLandscape ) {
+  if (isLandscape) {
     imgStyles.maxWidth = resource.width;
-    imgStyles.width = '100%';
-    imgStyles.height = 'auto';
-  } else if ( isPortrait || isSquare ) {
+    imgStyles.width = "100%";
+    imgStyles.height = "auto";
+  } else if (isPortrait || isSquare) {
     imgStyles.maxHeight = resource.height;
-    imgStyles.height = '100vh';
-    imgStyles.width = 'auto'
+    imgStyles.height = "100vh";
+    imgStyles.width = "auto";
   }
 
   /**
@@ -60,9 +107,9 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
    */
 
   function closeMenus() {
-    setFilterSheetIsOpen(false)
-    setInfoSheetIsOpen(false)
-    setDeletion(undefined)
+    setFilterSheetIsOpen(false);
+    setInfoSheetIsOpen(false);
+    setDeletion(undefined);
   }
 
   /**
@@ -71,7 +118,7 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
 
   function handleOnDeletionOpenChange(isOpen: boolean) {
     // Reset deletion dialog if the user is closing it
-    if ( !isOpen ) {
+    if (!isOpen) {
       setDeletion(undefined);
     }
   }
@@ -82,30 +129,39 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
   // multiple elements
 
   useEffect(() => {
-    document.body.addEventListener('click', handleOnOutsideClick)
+    document.body.addEventListener("click", handleOnOutsideClick);
     return () => {
-      document.body.removeEventListener('click', handleOnOutsideClick)
-    }
+      document.body.removeEventListener("click", handleOnOutsideClick);
+    };
   }, []);
 
   function handleOnOutsideClick(event: MouseEvent) {
-    const excludedElements = Array.from(document.querySelectorAll('[data-exclude-close-on-click="true"]'));
-    const clickedExcludedElement = excludedElements.filter(element => event.composedPath().includes(element)).length > 0;
+    const excludedElements = Array.from(
+      document.querySelectorAll('[data-exclude-close-on-click="true"]')
+    );
+    const clickedExcludedElement =
+      excludedElements.filter((element) =>
+        event.composedPath().includes(element)
+      ).length > 0;
 
-    if ( !clickedExcludedElement ) {
+    if (!clickedExcludedElement) {
       closeMenus();
     }
   }
 
   return (
     <div className="h-screen bg-black px-0">
-
       {/** Modal for deletion */}
 
-      <Dialog open={!!deletion?.state} onOpenChange={handleOnDeletionOpenChange}>
+      <Dialog
+        open={!!deletion?.state}
+        onOpenChange={handleOnDeletionOpenChange}
+      >
         <DialogContent data-exclude-close-on-click={true}>
           <DialogHeader>
-            <DialogTitle className="text-center">Are you sure you want to delete?</DialogTitle>
+            <DialogTitle className="text-center">
+              Are you sure you want to delete?
+            </DialogTitle>
           </DialogHeader>
           <DialogFooter className="justify-center sm:justify-center">
             <Button variant="destructive">
@@ -140,42 +196,52 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
             </TabsList>
             <TabsContent value="enhance">
               <SheetHeader className="my-4">
-                <SheetTitle className="text-zinc-400 text-sm font-semibold">Enhancements</SheetTitle>
+                <SheetTitle className="text-zinc-400 text-sm font-semibold">
+                  Enhancements
+                </SheetTitle>
               </SheetHeader>
-              <ul className="grid gap-2">
-                <li>
-                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
-                    <Ban className="w-5 h-5 mr-3" />
-                    <span className="text-[1.01rem]">None</span>
-                  </Button>
-                </li>
-                <li>
-                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
-                    <Ban className="w-5 h-5 mr-3" />
-                    <span className="text-[1.01rem]">Improve</span>
-                  </Button>
-                </li>
-                <li>
-                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
-                    <Ban className="w-5 h-5 mr-3" />
-                    <span className="text-[1.01rem]">Restore</span>
-                  </Button>
-                </li>
-                <li>
-                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
-                    <Ban className="w-5 h-5 mr-3" />
-                    <span className="text-[1.01rem]">Remove Background</span>
-                  </Button>
-                </li>
+              <ul className="grid gap-3">
+                {[
+                  { key: "none", label: "None", icon: Ban },
+                  { key: "improve", label: "Improve", icon: Wand2 },
+                  { key: "restore", label: "Restore", icon: PencilRuler },
+                  {
+                    key: "remove-background",
+                    label: "Remove Background",
+                    icon: ScissorsSquare,
+                  },
+                ].map(({ key, label, icon: Icon }) => (
+                  <li key={key}>
+                    <Button
+                      variant="ghost"
+                      className={`flex items-center gap-3 text-left justify-start w-full h-14 border-2 bg-zinc-800 text-white 
+        transition-all duration-200 hover:bg-zinc-700 hover:border-gray-400 
+        ${
+          enhancement === key
+            ? "border-blue-500 bg-zinc-700 shadow-md"
+            : "border-transparent"
+        }`}
+                      onClick={() => setEnhancement(key)}
+                    >
+                      <Icon className="w-5 h-5 text-gray-300" />
+                      <span className="text-base font-medium">{label}</span>
+                    </Button>
+                  </li>
+                ))}
               </ul>
             </TabsContent>
             <TabsContent value="crop">
               <SheetHeader className="my-4">
-                <SheetTitle className="text-zinc-400 text-sm font-semibold">Cropping & Resizing</SheetTitle>
+                <SheetTitle className="text-zinc-400 text-sm font-semibold">
+                  Cropping & Resizing
+                </SheetTitle>
               </SheetHeader>
               <ul className="grid gap-2">
                 <li>
-                  <Button variant="ghost" className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}>
+                  <Button
+                    variant="ghost"
+                    className={`text-left justify-start w-full h-14 border-4 bg-zinc-700 border-white`}
+                  >
                     <Image className="w-5 h-5 mr-3" />
                     <span className="text-[1.01rem]">Original</span>
                   </Button>
@@ -184,7 +250,9 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
             </TabsContent>
             <TabsContent value="filters">
               <SheetHeader className="my-4">
-                <SheetTitle className="text-zinc-400 text-sm font-semibold">Filters</SheetTitle>
+                <SheetTitle className="text-zinc-400 text-sm font-semibold">
+                  Filters
+                </SheetTitle>
               </SheetHeader>
               <ul className="grid grid-cols-2 gap-2">
                 <li>
@@ -206,9 +274,7 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
                 variant="ghost"
                 className="w-full h-14 text-left justify-center items-center bg-blue-500"
               >
-                <span className="text-[1.01rem]">
-                  Save
-                </span>
+                <span className="text-[1.01rem]">Save</span>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -220,7 +286,10 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
                     <ChevronDown className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" data-exclude-close-on-click={true}>
+                <DropdownMenuContent
+                  className="w-56"
+                  data-exclude-close-on-click={true}
+                >
                   <DropdownMenuGroup>
                     <DropdownMenuItem>
                       <span>Save as Copy</span>
@@ -234,9 +303,7 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
               className="w-full h-14 text-left justify-center items-center bg-transparent border-zinc-600"
               onClick={() => closeMenus()}
             >
-              <span className="text-[1.01rem]">
-                Close
-              </span>
+              <span className="text-[1.01rem]">Close</span>
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -251,14 +318,18 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
           data-exclude-close-on-click={true}
         >
           <SheetHeader className="my-4">
-            <SheetTitle className="text-zinc-200 font-semibold">Info</SheetTitle>
+            <SheetTitle className="text-zinc-200 font-semibold">
+              Info
+            </SheetTitle>
           </SheetHeader>
           <div>
             <ul>
               <li className="mb-3">
-                <strong className="block text-xs font-normal text-zinc-400 mb-1">ID</strong>
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  ID
+                </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  { resource.public_id }
+                  {resource.public_id}
                 </span>
               </li>
             </ul>
@@ -281,7 +352,10 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
         <div className="flex items-center gap-4">
           <ul>
             <li>
-              <Link href="/" className={`${buttonVariants({ variant: "ghost" })} text-white`}>
+              <Link
+                href="/"
+                className={`${buttonVariants({ variant: "ghost" })} text-white`}
+              >
                 <ChevronLeft className="h-6 w-6" />
                 Back
               </Link>
@@ -290,19 +364,31 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
         </div>
         <ul className="flex items-center gap-4">
           <li>
-            <Button variant="ghost" className="text-white" onClick={() => setFilterSheetIsOpen(true)}>
+            <Button
+              variant="ghost"
+              className="text-white"
+              onClick={() => setFilterSheetIsOpen(true)}
+            >
               <Pencil className="h-6 w-6" />
               <span className="sr-only">Edit</span>
             </Button>
           </li>
           <li>
-            <Button variant="ghost" className="text-white" onClick={() => setInfoSheetIsOpen(true)}>
+            <Button
+              variant="ghost"
+              className="text-white"
+              onClick={() => setInfoSheetIsOpen(true)}
+            >
               <Info className="h-6 w-6" />
               <span className="sr-only">Info</span>
             </Button>
           </li>
           <li>
-            <Button variant="ghost" className="text-white" onClick={() => setDeletion({ state: 'confirm' })}>
+            <Button
+              variant="ghost"
+              className="text-white"
+              onClick={() => setDeletion({ state: "confirm" })}
+            >
               <Trash2 className="h-6 w-6" />
               <span className="sr-only">Delete</span>
             </Button>
@@ -314,16 +400,18 @@ const MediaViewer = ({ resource }: { resource:CloudinaryResource }) => {
 
       <div className="relative flex justify-center items-center align-center w-full h-full">
         <CldImage
+          key = {JSON.stringify(transformations)}
           className="object-contain"
           width={resource.width}
           height={resource.height}
           src={resource.public_id}
           alt={`Image ${resource.public_id}`}
           style={imgStyles}
+          {...transformations}
         />
       </div>
     </div>
-  )
+  );
 };
 
 export default MediaViewer;
