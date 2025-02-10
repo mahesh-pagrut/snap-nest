@@ -19,6 +19,7 @@ import {
   Square,
   RectangleVertical,
   RectangleHorizontal,
+  Loader2,
 } from "lucide-react";
 
 import Container from "@/components/Container";
@@ -227,13 +228,19 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   }
 
   async function handleOnDelete(){
+    if ( deletion?.state === 'deleting'){
+      return ;
+    }
+    setDeletion({
+      state:"deleting"
+    })
     await fetch('/api/delete',{
       method:'POST',
       body: JSON.stringify({
         publicId:resource.public_id
       })
     })
-    router.push('/')
+    router.push('/');
   }
 
 
@@ -268,7 +275,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       {/** Modal for deletion */}
 
       <Dialog
-        open={!!deletion?.state}
+        open={deletion && ['confirm', "deleting"].includes(deletion.state)}
         onOpenChange={handleOnDeletionOpenChange}
       >
         <DialogContent data-exclude-close-on-click={true}>
@@ -281,7 +288,13 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
             <Button variant="destructive"
             onClick={handleOnDelete}
             >
-              <Trash2 className="h-4 w-4 mr-2" /> Delete
+              {deletion?.state === 'deleting' && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {deletion?.state === 'deleting' && (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
