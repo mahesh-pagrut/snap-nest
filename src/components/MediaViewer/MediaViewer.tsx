@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Blend,
   ChevronLeft,
@@ -58,6 +59,7 @@ interface Deletion {
 }
 
 const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
+  const queryClient = useQueryClient();
   const router = useRouter()
   const sheetFiltersRef = useRef<HTMLDivElement | null>(null);
   const sheetInfoRef = useRef<HTMLDivElement | null>(null);
@@ -194,6 +196,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
         url
       })
     }).then(r => r.json())
+    invalidateQueries()
 
     closeMenus();
     discardChanges();
@@ -223,6 +226,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
         url
       })
     }).then(r => r.json())
+    invalidateQueries()
 
     router.push(`/resources/${data.asset_id}`)
   }
@@ -240,8 +244,16 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
         publicId:resource.public_id
       })
     })
+    invalidateQueries()
     router.push('/');
   }
+
+  function invalidateQueries(){
+    queryClient.invalidateQueries({
+      queryKey: ['resources', String(process.env.NEXT_PUBLIC_CLOUDINARY_LIBRARY_TAG)]
+    })
+  }
+
 
 
   // Listen for clicks outside of the panel area and if determined
@@ -522,10 +534,58 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
             <ul>
               <li className="mb-3">
                 <strong className="block text-xs font-normal text-zinc-400 mb-1">
-                  ID
+                  ID :
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
                   {resource.public_id}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Date Created :
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  { new Date (resource.created_at).toLocaleDateString()}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Width
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  {resource.width}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Height
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  {resource.height}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Format
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  {resource.format}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Size
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  {resource.bytes}
+                </span>
+              </li>
+              <li className="mb-3">
+                <strong className="block text-xs font-normal text-zinc-400 mb-1">
+                  Tags
+                </strong>
+                <span className="flex gap-4 items-center text-zinc-100">
+                  {resource.tags.join(', ')}
                 </span>
               </li>
             </ul>
