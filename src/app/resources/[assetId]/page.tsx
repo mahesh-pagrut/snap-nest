@@ -9,16 +9,15 @@ cloudinary.config({
 
 
 
-async function Resource({params}: {params: { assetId: string}}){
-const { resources } = await cloudinary.api.resources_by_asset_ids(params.assetId, {
-  tags: true
-})
+async function Resource({ params }: { params: Promise<{ assetId: string }> }) {
+  const resolvedParams = await params; // Await the params if it's a Promise
 
-  return (
-    <MediaViewer
-      resource={resources[0]}
-    />
+  const { resources } = await cloudinary.api.resources_by_asset_ids(
+    resolvedParams.assetId,
+    { tags: true }
   );
+
+  return <MediaViewer resource={resources[0]} />;
 }
 
 export default Resource;

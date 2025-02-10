@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus, X, Save } from "lucide-react";
 import CldImage from "../CldImage";
-import { useQuery } from "@tanstack/react-query";
 
 import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";

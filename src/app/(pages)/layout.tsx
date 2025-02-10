@@ -1,5 +1,5 @@
 import '@/app/globals.css';
-import { Image } from 'lucide-react'
+import { ImageIcon } from 'lucide-react'
 
 import Nav from '@/components/Nav';
 
@@ -19,7 +19,7 @@ export default function RootLayout({
           <SidebarLinks
             links={[
               {
-                icon: <Image className="w-5 h-5" />,
+                icon: <ImageIcon className="w-5 h-5" />,
                 label: 'Photos',
                 path: '/'
               }

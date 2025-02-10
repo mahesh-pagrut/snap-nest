@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -11,15 +11,15 @@ export function cn(...inputs: ClassValue[]) {
  */
 
 export function addCommas(number: number | string) {
-  if ( !['string', 'number'].includes(typeof number) ) return number;
+  if (!["string", "number"].includes(typeof number)) return number;
 
   const num = `${number}`;
-  const [whole, decimal] = num.split('.');
-  let digitsSplit = whole.split('');
+  const [whole, decimal] = num.split(".");
+  const digitsSplit = whole.split(""); // ✅ Changed 'let' to 'const'
   let counter = 0;
 
   // Iterate through the digits from right to left
-  for (var i = digitsSplit.length - 1; i >= 0; i--) {
+  for (let i = digitsSplit.length - 1; i >= 0; i--) { // ✅ Changed 'var' to 'let'
     // Increment the counter
     counter++;
 
@@ -29,9 +29,9 @@ export function addCommas(number: number | string) {
     }
   }
 
-  let digits = digitsSplit.join('');
+  let digits = digitsSplit.join("");
 
-  if ( decimal ) {
+  if (decimal) {
     digits = `${digits}.${decimal}`;
   }
 
@@ -43,32 +43,32 @@ export function addCommas(number: number | string) {
  */
 
 export function formatBytes(bytes: number) {
-  if ( typeof bytes !== 'number' ) return bytes;
+  if (typeof bytes !== "number") return bytes;
 
   const limit = 1000;
-  let numberFormat = 'b';
+  let numberFormat = "b";
 
-  if ( bytes >= limit * 1000000 ) {
-    numberFormat = 'gb'
-  } else if ( bytes >= limit * 1000 ) {
-    numberFormat = 'mb';
-  } else if ( bytes >= limit ) {
-    numberFormat = 'kb';
+  if (bytes >= limit * 1000000) {
+    numberFormat = "gb";
+  } else if (bytes >= limit * 1000) {
+    numberFormat = "mb";
+  } else if (bytes >= limit) {
+    numberFormat = "kb";
   }
-  
+
   let normalizedBytes = bytes;
 
-  if ( numberFormat === 'gb' ) {
+  if (numberFormat === "gb") {
     normalizedBytes = bytes / 1000000000;
-  } else if ( numberFormat === 'mb' ) {
+  } else if (numberFormat === "mb") {
     normalizedBytes = bytes / 1000000;
-  } else if ( numberFormat === 'kb' ) {
+  } else if (numberFormat === "kb") {
     normalizedBytes = bytes / 1000;
   }
 
-  let amount = '';
+  let amount = "";
 
-  if ( normalizedBytes % 1 !== 0 ) {
+  if (normalizedBytes % 1 !== 0) {
     amount = normalizedBytes.toFixed(1);
   } else {
     amount = `${normalizedBytes}`;

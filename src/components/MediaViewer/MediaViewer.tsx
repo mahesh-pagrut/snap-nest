@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,10 +22,11 @@ import {
   RectangleHorizontal,
   Loader2,
 } from "lucide-react";
-import {formatBytes, addCommas} from '@/lib/utils'
+import { formatBytes, addCommas } from "@/lib/utils";
 
 import Container from "@/components/Container";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button} from "@/components/ui/button";
+// buttonVariants 
 import {
   Sheet,
   SheetContent,
@@ -53,7 +54,7 @@ import {
 
 import { CloudinaryResource } from "@/types/cloudinary";
 import { CldImageProps, getCldImageUrl } from "next-cloudinary";
-import  CldImage  from "@/components/CldImage"
+import CldImage from "@/components/CldImage";
 
 interface Deletion {
   state: string;
@@ -61,7 +62,7 @@ interface Deletion {
 
 const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   const queryClient = useQueryClient();
-  const router = useRouter()
+  const router = useRouter();
   const sheetFiltersRef = useRef<HTMLDivElement | null>(null);
   const sheetInfoRef = useRef<HTMLDivElement | null>(null);
 
@@ -70,7 +71,6 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   const [filterSheetIsOpen, setFilterSheetIsOpen] = useState(false);
   const [infoSheetIsOpen, setInfoSheetIsOpen] = useState(false);
   const [deletion, setDeletion] = useState<Deletion>();
-
 
   const [version, setVersion] = useState<number>(1);
   const [enhancement, setEnhancement] = useState<string>();
@@ -88,7 +88,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     transformations.removeBackground = true;
   }
 
-  if ( crop === 'square'){
+  if (crop === "square") {
     if (resource.width > resource.height) {
       transformations.height = resource.width;
     } else {
@@ -96,26 +96,31 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     }
     transformations.crop = {
       source: true,
-      type: 'fill'
-    }
-  } else if ( crop === 'landscape') {
-    transformations.height = Math.floor(resource.width / (16/9))
+      type: "fill",
+    };
+  } else if (crop === "landscape") {
+    transformations.height = Math.floor(resource.width / (16 / 9));
     transformations.crop = {
       source: true,
-      type: 'fill'
-    }
-  } else if( crop == 'portrait' ) {
-    transformations.width = Math.floor(resource.height / (5/4))
-      transformations.crop = {
-        source: true,
-        type: 'fill'
-    }
+      type: "fill",
+    };
+  } else if (crop == "portrait") {
+    transformations.width = Math.floor(resource.height / (5 / 4));
+    transformations.crop = {
+      source: true,
+      type: "fill",
+    };
   }
-  
 
-  if ( typeof filter === 'string' && ['grayscale', 'sepia', 'sharpen'].includes(filter)){
-    transformations[filter as keyof Transformations] = true
-  } else if ( typeof filter === 'string' && ['sizzle', 'frost'].includes(filter)){
+  if (
+    typeof filter === "string" &&
+    ["grayscale", "sepia", "sharpen"].includes(filter)
+  ) {
+    transformations[filter as keyof Transformations] = true;
+  } else if (
+    typeof filter === "string" &&
+    ["sizzle", "frost"].includes(filter)
+  ) {
     transformations.art = filter;
   }
 
@@ -160,11 +165,11 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
 
   // discard changes
 
-  function discardChanges(){
+  function discardChanges() {
     setEnhancement(undefined);
     setCrop(undefined);
     setFilter(undefined);
-    }
+  }
 
   // handleOnDeletionOpenChange
 
@@ -175,118 +180,114 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     }
   }
 
-
-// handleOnSave
-  async function handleOnSave(){
+  // handleOnSave
+  async function handleOnSave() {
     const url = getCldImageUrl({
       width: resource.width,
       height: resource.height,
       src: resource.public_id,
-      format: 'default',
-      quality: 'default',
-      ...transformations
+      format: "default",
+      quality: "default",
+      ...transformations,
     });
-
 
     await fetch(url);
 
-    const results = await fetch('/api/upload', {
-      method: 'POST',
+    const results = await fetch("/api/upload", {
+      method: "POST",
       body: JSON.stringify({
         publicId: resource.public_id,
-        url
-      })
-    }).then(r => r.json())
-    invalidateQueries()
+        url,
+      }),
+    }).then((r) => r.json());
+    invalidateQueries();
 
     closeMenus();
     discardChanges();
     setVersion(Date.now());
-
-    console.log('url', url)
     console.log('results', results)
+
   }
   // handleSaveOnCopy
-  async function handleOnSaveCopy(){
+  async function handleOnSaveCopy() {
     const url = getCldImageUrl({
       width: resource.width,
       height: resource.height,
       src: resource.public_id,
-      format: 'default',
-      quality: 'default',
-      ...transformations
+      format: "default",
+      quality: "default",
+      ...transformations,
     });
 
     await fetch(url);
 
-    const {data} = await fetch('/api/upload', {
-      method: 'POST',
+    const { data } = await fetch("/api/upload", {
+      method: "POST",
       body: JSON.stringify({
-        url
-      })
-    }).then(r => r.json())
-    invalidateQueries()
+        url,
+      }),
+    }).then((r) => r.json());
+    invalidateQueries();
 
-    router.push(`/resources/${data.asset_id}`)
+    router.push(`/resources/${data.asset_id}`);
   }
 
-  async function handleOnDelete(){
-    if ( deletion?.state === 'deleting'){
-      return ;
+  async function handleOnDelete() {
+    if (deletion?.state === "deleting") {
+      return;
     }
     setDeletion({
-      state:"deleting"
-    })
-    await fetch('/api/delete',{
-      method:'POST',
+      state: "deleting",
+    });
+    await fetch("/api/delete", {
+      method: "POST",
       body: JSON.stringify({
-        publicId:resource.public_id
-      })
-    })
-    invalidateQueries()
-    router.push('/');
+        publicId: resource.public_id,
+      }),
+    });
+    invalidateQueries();
+    router.push("/");
   }
 
-  function invalidateQueries(){
+  function invalidateQueries() {
     queryClient.invalidateQueries({
-      queryKey: ['resources', String(process.env.NEXT_PUBLIC_CLOUDINARY_LIBRARY_TAG)]
-    })
+      queryKey: [
+        "resources",
+        String(process.env.NEXT_PUBLIC_CLOUDINARY_LIBRARY_TAG),
+      ],
+    });
   }
-
-
 
   // Listen for clicks outside of the panel area and if determined
   // to be outside, close the panel. This is marked by using
   // a data attribute to provide an easy way to reference it on
   // multiple elements
 
+  const handleOnOutsideClick = useCallback((event: MouseEvent) => {
+    const excludedElements = Array.from(
+      document.querySelectorAll('[data-exclude-close-on-click="true"]')
+    );
+    const clickedExcludedElement =
+      excludedElements.some((element) => event.composedPath().includes(element));
+  
+    if (!clickedExcludedElement) {
+      closeMenus();
+    }
+  }, []); // Add dependencies if needed
+  
   useEffect(() => {
     document.body.addEventListener("click", handleOnOutsideClick);
     return () => {
       document.body.removeEventListener("click", handleOnOutsideClick);
     };
-  }, []);
-
-  function handleOnOutsideClick(event: MouseEvent) {
-    const excludedElements = Array.from(
-      document.querySelectorAll('[data-exclude-close-on-click="true"]')
-    );
-    const clickedExcludedElement =
-      excludedElements.filter((element) =>
-        event.composedPath().includes(element)
-      ).length > 0;
-
-    if (!clickedExcludedElement) {
-      closeMenus();
-    }
-  }
+  }, [handleOnOutsideClick]); // Now it won't change unnecessarily
 
   return (
     <div className="h-screen bg-black px-0">
       {/** Modal for deletion */}
 
       <Dialog
-        open={deletion && ['confirm', "deleting"].includes(deletion.state)}
+        open={deletion && ["confirm", "deleting"].includes(deletion.state)}
         onOpenChange={handleOnDeletionOpenChange}
       >
         <DialogContent data-exclude-close-on-click={true}>
@@ -296,13 +297,11 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
             </DialogTitle>
           </DialogHeader>
           <DialogFooter className="justify-center sm:justify-center">
-            <Button variant="destructive"
-            onClick={handleOnDelete}
-            >
-              {deletion?.state === 'deleting' && (
+            <Button variant="destructive" onClick={handleOnDelete}>
+              {deletion?.state === "deleting" && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {deletion?.state === 'deleting' && (
+              {deletion?.state === "deleting" && (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
               Delete
@@ -310,7 +309,6 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
 
       {/** Edit panel for transformations and filters */}
 
@@ -382,30 +380,38 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                 </SheetTitle>
               </SheetHeader>
               <ul className="grid gap-3">
-                  {[
-                    { key: undefined, label: "Original", icon: Image },
-                    { key: "square", label: "Square", icon: Square },
-                    { key: "landscape", label: "Landscape", icon: RectangleHorizontal },
-                    { key: "portrait", label: "Portrait", icon: RectangleVertical },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <li key={label}>
-                      <Button
-                        variant="ghost"
-                        className={`flex items-center gap-3 text-left justify-start w-full h-14 border-2 bg-zinc-800 text-white 
+                {[
+                  { key: undefined, label: "Original", icon: Image },
+                  { key: "square", label: "Square", icon: Square },
+                  {
+                    key: "landscape",
+                    label: "Landscape",
+                    icon: RectangleHorizontal,
+                  },
+                  {
+                    key: "portrait",
+                    label: "Portrait",
+                    icon: RectangleVertical,
+                  },
+                ].map(({ key, label, icon: Icon }) => (
+                  <li key={label}>
+                    <Button
+                      variant="ghost"
+                      className={`flex items-center gap-3 text-left justify-start w-full h-14 border-2 bg-zinc-800 text-white 
                         transition-all duration-200 hover:bg-zinc-700 hover:border-gray-400 
                         ${
                           crop === key
                             ? "border-blue-500 bg-zinc-700 shadow-md"
                             : "border-transparent"
                         }`}
-                        onClick={() => setCrop(key)}
-                      >
-                        <Icon className="w-5 h-5 text-gray-300" />
-                        <span className="text-base font-medium">{label}</span>
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
+                      onClick={() => setCrop(key)}
+                    >
+                      <Icon className="w-5 h-5 text-gray-300" />
+                      <span className="text-base font-medium">{label}</span>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             </TabsContent>
 
             {/* filters functionalities */}
@@ -421,8 +427,16 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   { key: "sepia", label: "Sepia", filter: { sepia: true } },
                   { key: "sizzle", label: "Sizzle", filter: { art: "sizzle" } },
                   { key: "frost", label: "Frost", filter: { art: "frost" } },
-                  { key: "grayscale", label: "Grayscale", filter: { grayscale: true } },
-                  { key: "sharpen", label: "Sharpen", filter: { sharpen: true } },
+                  {
+                    key: "grayscale",
+                    label: "Grayscale",
+                    filter: { grayscale: true },
+                  },
+                  {
+                    key: "sharpen",
+                    label: "Sharpen",
+                    filter: { sharpen: true },
+                  },
                 ].map(({ key, label, filter: imgFilter }) => (
                   <li key={label}>
                     <button
@@ -446,73 +460,71 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   </li>
                 ))}
               </ul>
-
             </TabsContent>
           </Tabs>
           <SheetFooter className="gap-2 sm:flex-col">
-            { hasTransformations && (
-            <div className="grid grid-cols-[1fr_4rem] gap-2">
-              {/* Save Button */}
-              <Button
-                variant="ghost"
-                className="w-full h-14 text-white text-[1.01rem] flex justify-center items-center bg-blue-500 
+            {hasTransformations && (
+              <div className="grid grid-cols-[1fr_4rem] gap-2">
+                {/* Save Button */}
+                <Button
+                  variant="ghost"
+                  className="w-full h-14 text-white text-[1.01rem] flex justify-center items-center bg-blue-500 
                   transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
                   onClick={handleOnSave}
-              >
-                Save
-              </Button>
-
-              {/* Dropdown Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full h-14 flex justify-center items-center bg-blue-500 text-white 
-                      transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
-                  >
-                    <span className="sr-only">More Options</span>
-                    <ChevronDown className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56 bg-zinc-800 text-white border border-gray-700 shadow-lg rounded-lg"
-                  data-exclude-close-on-click={true}
                 >
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem 
-                      className="flex items-center gap-2 px-4 py-3 text-[1.01rem] 
+                  Save
+                </Button>
+
+                {/* Dropdown Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full h-14 flex justify-center items-center bg-blue-500 text-white 
+                      transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
+                    >
+                      <span className="sr-only">More Options</span>
+                      <ChevronDown className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-56 bg-zinc-800 text-white border border-gray-700 shadow-lg rounded-lg"
+                    data-exclude-close-on-click={true}
+                  >
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 px-4 py-3 text-[1.01rem] 
                         hover:bg-zinc-700 hover:text-blue-400 transition-all duration-200 
                         rounded-md cursor-pointer"
                         onClick={handleOnSaveCopy}
-                    >
-                      <span>Save as Copy</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                      >
+                        <span>Save as Copy</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
 
             {/* Close Button */}
             <Button
-                variant="outline"
-                className={`w-full h-14 flex justify-center items-center rounded-xl shadow-md 
+              variant="outline"
+              className={`w-full h-14 flex justify-center items-center rounded-xl shadow-md 
                   border border-zinc-600 transition-all duration-200 
                   hover:bg-zinc-700 hover:border-gray-400 
                   ${
                     hasTransformations
-                      ? "text-red-400 hover:text-red-300"  // Highlight "Cancel" in red
-                      : "text-white hover:text-gray-300"  // Keep "Close" neutral
+                      ? "text-red-400 hover:text-red-300" // Highlight "Cancel" in red
+                      : "text-white hover:text-gray-300" // Keep "Close" neutral
                   }`}
-                onClick={() => {
-                  closeMenus();
-                  discardChanges();
-                }}
-              >
-                {hasTransformations ? "Cancel" : "Close"}
-              </Button>
+              onClick={() => {
+                closeMenus();
+                discardChanges();
+              }}
+            >
+              {hasTransformations ? "Cancel" : "Close"}
+            </Button>
           </SheetFooter>
-
         </SheetContent>
       </Sheet>
 
@@ -544,7 +556,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Date Created :
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  { new Date (resource.created_at).toLocaleDateString()}
+                  {new Date(resource.created_at).toLocaleDateString()}
                 </span>
               </li>
               <li className="mb-3">
@@ -552,7 +564,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Width
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  { addCommas(resource.width)}
+                  {addCommas(resource.width)}
                 </span>
               </li>
               <li className="mb-3">
@@ -560,7 +572,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Height
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  { addCommas(resource.height)}
+                  {addCommas(resource.height)}
                 </span>
               </li>
               <li className="mb-3">
@@ -584,7 +596,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Tags
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  {resource.tags.join(', ')}
+                  {resource.tags.join(", ")}
                 </span>
               </li>
             </ul>
@@ -602,52 +614,55 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       </Sheet>
 
       {/** Asset Management Navbar */}
-        <Container className="fixed z-10 top-0 left-0 w-full h-16 flex items-center justify-between px-6 bg-zinc-900 shadow-md rounded-lg">
-          {/* Back Button */}
-          <div className="flex items-center">
-            <Link href="/" className="text-white flex items-center gap-2 text-lg font-medium p-3 hover:bg-zinc-800 rounded-md transition">
-              <ChevronLeft className="h-5 w-5" />
-              Back
-            </Link>
-          </div>
+      <Container className="fixed z-10 top-0 left-0 w-full h-16 flex items-center justify-between px-6 bg-zinc-900 shadow-md rounded-lg">
+        {/* Back Button */}
+        <div className="flex items-center">
+          <Link
+            href="/"
+            className="text-white flex items-center gap-2 text-lg font-medium p-3 hover:bg-zinc-800 rounded-md transition"
+          >
+            <ChevronLeft className="h-5 w-5" />
+            Back
+          </Link>
+        </div>
 
-          {/* Action Buttons */}
-          <ul className="flex items-center gap-4">
-            <li>
-              <Button
-                variant="ghost"
-                className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
-                onClick={() => setFilterSheetIsOpen(true)}
-              >
-                <Pencil className="h-6 w-6" />
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant="ghost"
-                className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
-                onClick={() => setInfoSheetIsOpen(true)}
-              >
-                <Info className="h-6 w-6" />
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant="ghost"
-                className="text-white p-3 hover:bg-zinc-800 hover:text-red-500 rounded-lg transition"
-                onClick={() => setDeletion({ state: "confirm" })}
-              >
-                <Trash2 className="h-6 w-6" />
-              </Button>
-            </li>
-          </ul>
-        </Container>
+        {/* Action Buttons */}
+        <ul className="flex items-center gap-4">
+          <li>
+            <Button
+              variant="ghost"
+              className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
+              onClick={() => setFilterSheetIsOpen(true)}
+            >
+              <Pencil className="h-6 w-6" />
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className="text-white p-3 hover:bg-zinc-800 hover:text-white rounded-lg transition"
+              onClick={() => setInfoSheetIsOpen(true)}
+            >
+              <Info className="h-6 w-6" />
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              className="text-white p-3 hover:bg-zinc-800 hover:text-red-500 rounded-lg transition"
+              onClick={() => setDeletion({ state: "confirm" })}
+            >
+              <Trash2 className="h-6 w-6" />
+            </Button>
+          </li>
+        </ul>
+      </Container>
 
       {/** Asset viewer */}
 
       <div className="relative flex justify-center items-center align-center w-full h-full">
         <CldImage
-          key = {`${JSON.stringify(transformations)}-${version}`}
+          key={`${JSON.stringify(transformations)}-${version}`}
           className="object-contain"
           width={resource.width}
           height={resource.height}

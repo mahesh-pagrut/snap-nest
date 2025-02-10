@@ -38,7 +38,5 @@ export function useResources(options?: UseResources ){
         resources,
         addResources
       }
-
-      console.log('resources', resources)
     
 }
