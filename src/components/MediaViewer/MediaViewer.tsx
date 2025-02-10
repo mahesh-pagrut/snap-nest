@@ -22,6 +22,7 @@ import {
   RectangleHorizontal,
   Loader2,
 } from "lucide-react";
+import {formatBytes, addCommas} from '@/lib/utils'
 
 import Container from "@/components/Container";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -205,8 +206,6 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     console.log('url', url)
     console.log('results', results)
   }
-  
-
   // handleSaveOnCopy
   async function handleOnSaveCopy(){
     const url = getCldImageUrl({
@@ -553,7 +552,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Width
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  {resource.width}
+                  { addCommas(resource.width)}
                 </span>
               </li>
               <li className="mb-3">
@@ -561,7 +560,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Height
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  {resource.height}
+                  { addCommas(resource.height)}
                 </span>
               </li>
               <li className="mb-3">
@@ -577,7 +576,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   Size
                 </strong>
                 <span className="flex gap-4 items-center text-zinc-100">
-                  {resource.bytes}
+                  {formatBytes(resource.bytes)}
                 </span>
               </li>
               <li className="mb-3">
