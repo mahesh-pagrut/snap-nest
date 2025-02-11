@@ -180,34 +180,35 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     }
   }
 
-  // handleOnSave
-  // async function handleOnSave() {
-  //   const url = getCldImageUrl({
-  //     width: resource.width,
-  //     height: resource.height,
-  //     src: resource.public_id,
-  //     format: "default",
-  //     quality: "default",
-  //     ...transformations,
-  //   });
+  handleOnSave
+  async function handleOnSave() {
+    const url = getCldImageUrl({
+      width: resource.width,
+      height: resource.height,
+      src: resource.public_id,
+      format: "default",
+      quality: "default",
+      ...transformations,
+    });
 
-  //   await fetch(url);
+    await fetch(url);
 
-  //   const results = await fetch("/api/upload", {
-  //     method: "POST",
-  //     body: JSON.stringify({
-  //       publicId: resource.public_id,
-  //       url,
-  //     }),
-  //   }).then((r) => r.json());
-  //   invalidateQueries();
+    const results = await fetch("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({
+        publicId: resource.public_id,
+        url,
+      }),
+    }).then((r) => r.json());
+    invalidateQueries();
 
-  //   closeMenus();
-  //   discardChanges();
-  //   setVersion(Date.now());
-  //   console.log('results', results)
+    closeMenus();
+    discardChanges();
+    setVersion(Date.now());
+    console.log('results', results)
 
-  // }
+  }
+
   // handleSaveOnCopy
   async function handleOnSaveCopy() {
     const url = getCldImageUrl({
@@ -496,7 +497,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                         className="flex items-center gap-2 px-4 py-3 text-[1.01rem] 
                         hover:bg-zinc-700 hover:text-blue-400 transition-all duration-200 
                         rounded-md cursor-pointer"
-                        onClick={handleOnSaveCopy}
+                        onClick={handleOnSave}
                       >
                         <span>Save as Copy</span>
                       </DropdownMenuItem>
