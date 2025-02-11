@@ -1,5 +1,5 @@
 import '@/app/globals.css';
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Sparkles } from 'lucide-react'
 
 import Nav from '@/components/Nav';
 
@@ -22,7 +22,13 @@ export default function RootLayout({
                 icon: <ImageIcon className="w-5 h-5" />,
                 label: 'Photos',
                 path: '/'
+              },
+              {
+                icon: <Sparkles className="w-5 h-5" />,
+                label: 'Creations',
+                path: '/creations'
               }
+              
             ]}
           />
         </aside>

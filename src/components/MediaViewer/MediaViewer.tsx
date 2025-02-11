@@ -181,33 +181,33 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
   }
 
   // handleOnSave
-  async function handleOnSave() {
-    const url = getCldImageUrl({
-      width: resource.width,
-      height: resource.height,
-      src: resource.public_id,
-      format: "default",
-      quality: "default",
-      ...transformations,
-    });
+  // async function handleOnSave() {
+  //   const url = getCldImageUrl({
+  //     width: resource.width,
+  //     height: resource.height,
+  //     src: resource.public_id,
+  //     format: "default",
+  //     quality: "default",
+  //     ...transformations,
+  //   });
 
-    await fetch(url);
+  //   await fetch(url);
 
-    const results = await fetch("/api/upload", {
-      method: "POST",
-      body: JSON.stringify({
-        publicId: resource.public_id,
-        url,
-      }),
-    }).then((r) => r.json());
-    invalidateQueries();
+  //   const results = await fetch("/api/upload", {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       publicId: resource.public_id,
+  //       url,
+  //     }),
+  //   }).then((r) => r.json());
+  //   invalidateQueries();
 
-    closeMenus();
-    discardChanges();
-    setVersion(Date.now());
-    console.log('results', results)
+  //   closeMenus();
+  //   discardChanges();
+  //   setVersion(Date.now());
+  //   console.log('results', results)
 
-  }
+  // }
   // handleSaveOnCopy
   async function handleOnSaveCopy() {
     const url = getCldImageUrl({
@@ -334,7 +334,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
               </TabsTrigger>
             </TabsList>
 
-            {/* enhancement functionlaties */}
+            {/* enhancement functions */}
             <TabsContent value="enhance">
               <SheetHeader className="my-4">
                 <SheetTitle className="text-zinc-400 text-sm font-semibold">
@@ -470,7 +470,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   variant="ghost"
                   className="w-full h-14 text-white text-[1.01rem] flex justify-center items-center bg-blue-500 
                   transition-all duration-200 hover:bg-blue-600 rounded-xl shadow-md"
-                  onClick={handleOnSave}
+                  onClick={handleOnSaveCopy}
                 >
                   Save
                 </Button>

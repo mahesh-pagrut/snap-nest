@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, X, Save } from "lucide-react";
+import { Plus, X, Save, Loader2, SquareStack, Droplet, LayoutPanelLeft } from "lucide-react";
 import CldImage from "../CldImage";
+
 
 import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
@@ -25,23 +26,102 @@ import {
 
 import { CloudinaryResource } from "@/types/cloudinary";
 import { useResources } from "@/hooks/use-resources";
+import { getAnimation, getCollage } from "@/lib/creations";
 
 interface MediaGalleryProps {
   resources: Array<CloudinaryResource>;
   tag?: string;
 }
 
-const MediaGallery = ({ resources: initialResources, tag }: MediaGalleryProps) => {
+interface Creation {
+  state: string;
+  url?: string;
+  type: string;
+}
 
-  const { resources } = useResources({
+const MediaGallery = ({
+  resources: initialResources,
+  tag,
+}: MediaGalleryProps) => {
+  const { resources, addResources } = useResources({
     initialResources,
-    tag
-  })
+    tag,
+  });
 
-  console.log('resources', resources)
+  console.log("resources", resources);
 
   const [selected, setSelected] = useState<Array<string>>([]);
-  const [creation, setCreation] = useState();
+  const [creation, setCreation] = useState<Creation>();
+
+  function handleOnCreateCollage() {
+    setCreation({
+      state: "created",
+      url: getCollage(selected),
+      type: "collage",
+    });
+  }
+
+
+    //Handle on Create animation 
+  function handleOnCreateAnimation(){
+    setCreation({
+      state: "created",
+      url: getAnimation(selected),
+      type: "animation",
+    });
+  }
+
+  // handleOnCreateColorPop
+  async function handleOnCreateColorPop(){
+
+    setCreation({
+      state: "creating",
+      url: undefined,
+      type: "color-pop",
+    });
+
+    const {url} = await fetch('/api/creations/color-pop',{
+      method: 'POST',
+      body: JSON.stringify({
+        publicId: selected[0]
+      })
+    }).then(r => r.json())
+
+    setCreation({
+      state: "created",
+      url,
+      type: "color-pop",
+    });
+  }
+
+  async function handleOnSaveCreation(){
+    if (typeof creation?.url !== 'string' || creation?.state === 'saving'){
+      return ;
+    }
+
+    setCreation((prev) => {
+      if (!prev) return ;
+      return {
+        ...prev,
+        state: 'saving'
+      }
+    })
+    await fetch(creation.url);
+
+    const { data } = await fetch("/api/upload", {
+      method: "POST",
+      body: JSON.stringify({
+        url: creation.url,
+        tags: [String(process.env.NEXT_PUBLIC_CLOUDINARY_CREATIONS_TAG)]
+      }),
+    }).then((r) => r.json());
+
+    addResources([data])
+    setCreation(undefined)
+    setSelected([])
+  
+    console.log('data', data)
+  }
 
   /**
    * handleOnClearSelection
@@ -67,15 +147,42 @@ const MediaGallery = ({ resources: initialResources, tag }: MediaGalleryProps) =
 
       <Dialog open={!!creation} onOpenChange={handleOnCreationOpenChange}>
         <DialogContent>
+          {creation?.state && ['creating'].includes(creation?.state) && (
+          <div className="flex items-center justify-center p-12">
+          <Loader2 className="h-12 w-12 mr-2 animate-spin" />
+          </div>
+          )}
+          {creation?.state && ['created', 'saving'].includes(creation?.state) && (
+          <>
           <DialogHeader>
             <DialogTitle>Save your creation?</DialogTitle>
           </DialogHeader>
+          {creation?.url && (
+            <div>
+              <CldImage
+                width={1200}
+                height={1200}
+                src={creation.url}
+                alt="Creation"
+                preserveTransformations
+              />
+            </div>
+          )}
           <DialogFooter className="justify-end sm:justify-end">
-            <Button>
-              <Save className="h-4 w-4 mr-2" />
+            <Button
+            onClick={handleOnSaveCreation}
+            >
+              {creation?.state === 'saving' && (
+                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {creation?.state !== 'saving' && (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Save to Library
             </Button>
           </DialogFooter>
+          </>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -107,9 +214,24 @@ const MediaGallery = ({ resources: initialResources, tag }: MediaGalleryProps) =
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-white">
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                      <span>Option</span>
+                    {selected.length === 1 && (
+                    <DropdownMenuItem onClick={handleOnCreateAnimation}>
+                    <SquareStack className="w-4 h-4 mr-2"/>
+                      <span>Animation</span>
                     </DropdownMenuItem>
+                    )}
+                      {selected.length > 1 && (
+                    <DropdownMenuItem onClick={handleOnCreateCollage}>
+                    <LayoutPanelLeft className="w-4 h-4 mr-2"/>
+                      <span>Collage</span>
+                    </DropdownMenuItem>
+                    )}
+                    {selected.length === 1 && (
+                    <DropdownMenuItem onClick={handleOnCreateColorPop}>
+                    <Droplet className="w-4 h-4 mr-2"/>
+                      <span>Color Pop</span>
+                    </DropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
