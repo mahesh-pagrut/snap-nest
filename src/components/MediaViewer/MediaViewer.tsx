@@ -180,7 +180,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     }
   }
 
-  handleOnSave
+  // handleOnSave
   async function handleOnSave() {
     const url = getCldImageUrl({
       width: resource.width,
